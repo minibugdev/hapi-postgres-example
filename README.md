@@ -1,13 +1,16 @@
 # Hapi and PostgreSQL example
 
 ## Getting Start
-0. Clone this project
-1. Install PostgreSQL and start it.
-2. Install node package with
+**0.** Clone this project
+
+**1.** Install PostgreSQL and start it.
+
+**2.** Install node package with
 ```
 npm install
 ```
-3. Copy `.env.example` rename to `.env` for config project environment
+
+**3.** Copy `.env.example` rename to `.env` for config project environment
 ```
 DB_HOST=127.0.0.1
 DB_USER=root
@@ -16,15 +19,18 @@ DB_NAME=postgres
 JWT_SECRET={YOUR JWT SECRET KEY}
 JWT_ALGORITHM=HS256
 ```
-4. Create `users` table by `knex migrate` with
+
+**4.** Create `users` table by
 ```
 knex migrate:latest            
 ```
-*Optional If you need starter data, can run `knex seed` with
+
+**Optional** If you need starter data, can run
 ```
 knex seed:run           
 ```
-5. Start project
+
+**5.** Start project
 ```
 npm start
 ```
