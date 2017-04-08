@@ -20,12 +20,15 @@ JWT_SECRET={YOUR JWT SECRET KEY}
 JWT_ALGORITHM=HS256
 ```
 
-**4.** Create `users` table by
+**4.** Install `knex cli`
+```
+npm install -g knex
+```
+4.1. Create `users` table by
 ```
 knex migrate:latest            
 ```
-
-**Optional** If you need starter data, can run
+4.2 If you need starter data, can run
 ```
 knex seed:run           
 ```
