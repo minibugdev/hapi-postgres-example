@@ -1,3 +1,5 @@
+'use strict';
+
 import Hapi from 'hapi';
 import Routes from './routes';
 import { config } from 'dotenv';

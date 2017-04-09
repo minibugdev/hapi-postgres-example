@@ -1,3 +1,5 @@
+'use strict';
+
 import Knex from './knex';
 import JWT from 'jsonwebtoken';
 import UUID from 'node-uuid';
