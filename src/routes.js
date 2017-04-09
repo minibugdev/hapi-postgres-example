@@ -1,7 +1,7 @@
-import Knex from "./knex";
-import jwt from "jsonwebtoken";
-import UUID from "node-uuid";
-import { config } from "dotenv";
+import Knex from './knex';
+import JWT from 'jsonwebtoken';
+import UUID from 'node-uuid';
+import { config } from 'dotenv';
 config();
 const ENV = process.env;
 
@@ -16,98 +16,110 @@ const routes = [
             }
         },
         handler: (request, reply) => {
-            const {scope} = request.auth.credentials;
-            const getOperation = Knex('users').where({
-                uuid: scope
-            }).select('uuid', 'name', 'username', 'email').then(([user]) => {
-                if (!user) {
+
+            const { scope } = request.auth.credentials;
+            const getOperation = Knex('users')
+                .where({ uuid: scope })
+                .select('uuid', 'name', 'username', 'email')
+                .then(([user]) => {
+
+                    if (!user) {
+                        reply({
+                                  error: true,
+                                  errMessage: 'the specified user was not found',
+                              });
+
+                        // Force of habit. But most importantly, we don't want to wrap everything else in an `else` block;
+                        // better is, just return the control.
+                        return;
+                    }
+
                     reply({
-                        error: true,
-                        errMessage: 'the specified user was not found',
-                    });
+                              data: user,
+                              message: `Hello ${user.name}`
+                          });
+                })
+                .catch((err) => {
 
-                    // Force of habit. But most importantly, we don't want to wrap everything else in an `else` block;
-                    // better is, just return the control.
-                    return;
-                }
-
-                reply({
-                    data: user,
-                    message: `Hello ${user.name}`
+                    reply(`server-side error : ${err}`);
                 });
-            }).catch((err) => {
-                reply(`server-side error : ${err}`);
-            });
         }
     },
     {
         path: '/auth',
         method: 'POST',
         handler: (request, reply) => {
+
             // This is a ES6 standard
-            const {username, password} = request.payload;
-            const getOperation = Knex('users').where({
-                username: username
-            }).select('uuid', 'password').then(([user]) => {
-                if (!user) {
-                    reply({
-                        error: true,
-                        errMessage: 'the specified user was not found',
-                    });
+            const { username, password } = request.payload;
+            const getOperation = Knex('users')
+                .where({ username: username })
+                .select('uuid', 'password')
+                .then(([user]) => {
 
-                    // Force of habit. But most importantly, we don't want to wrap everything else in an `else` block;
-                    // better is, just return the control.
-                    return;
-                }
+                    if (!user) {
+                        reply({
+                                  error: true,
+                                  errMessage: 'the specified user was not found',
+                              });
 
-                // Honestly, this is VERY insecure. Use some salted-hashing algorithm and then compare it.
-                if (user.password === password) {
-                    const token = jwt.sign({
-                        // You can have anything you want here.
-                        // ANYTHING. As we'll see in a bit, this decoded token is passed onto a request handler.
-                        username,
-                        scope: user.uuid,
+                        // Force of habit. But most importantly, we don't want to wrap everything else in an `else` block;
+                        // better is, just return the control.
+                        return;
+                    }
 
-                    }, ENV.JWT_SECRET, {
-                        algorithm: ENV.JWT_ALGORITHM,
-                        expiresIn: '1h',
-                    });
+                    // Honestly, this is VERY insecure. Use some salted-hashing algorithm and then compare it.
+                    if (user.password === password) {
+                        const token = JWT.sign({
+                                                   // You can have anything you want here.
+                                                   // ANYTHING. As we'll see in a bit, this decoded token is passed onto a request handler.
+                                                   username,
+                                                   scope: user.uuid,
 
-                    reply({
-                        token,
-                        scope: user.uuid,
-                    });
-                }
-                else {
-                    reply('incorrect password');
-                }
-            }).catch((err) => {
-                reply(`server-side error : ${err}`);
-            });
+                                               }, ENV.JWT_SECRET, {
+                                                   algorithm: ENV.JWT_ALGORITHM,
+                                                   expiresIn: '1h',
+                                               });
+
+                        reply({
+                                  token,
+                                  scope: user.uuid,
+                              });
+                    }
+                    else {
+                        reply('incorrect password');
+                    }
+                }).catch((err) => {
+
+                    reply(`server-side error : ${err}`);
+                });
         }
     },
     {
         path: '/register',
         method: 'POST',
         handler: (request, reply) => {
+
             const uuid = UUID.v4();
             const user = request.payload;
+            const insertOperation = Knex('users')
+                .insert({
+                            uuid: uuid,
+                            name: user.name,
+                            username: user.username,
+                            email: user.email,
+                            password: user.password
+                        })
+                .then((res) => {
 
-            const insertOperation = Knex('users').insert({
-                uuid: uuid,
-                name: user.name,
-                username: user.username,
-                email: user.email,
-                password: user.password
-            }).then((res) => {
-                reply({
-                    data: uuid,
-                    message: 'successfully created user'
+                    reply({
+                              data: uuid,
+                              message: 'successfully created user'
+                          });
+                }).catch((err) => {
+
+                    reply(`server-side error : ${err}`);
                 });
-
-            }).catch((err) => {
-                reply(`server-side error : ${err}`);
-            });
         }
     },
     {
@@ -119,49 +131,53 @@ const routes = [
             },
             pre: [{
                 method: (request, reply) => {
-                    const {uuid} = request.params;
-                    const {scope} = request.auth.credentials;
+                    const { uuid } = request.params;
+                    const { scope } = request.auth.credentials;
+                    const getOperation = Knex('users')
+                        .where({ uuid: uuid, })
+                        .select('uuid')
+                        .then(([user]) => {
 
-                    const getOperation = Knex('users').where({
-                        uuid: uuid,
-                    }).select('uuid').then(([user]) => {
-                        if (!user) {
-                            reply({
-                                error: true,
-                                errMessage: `the user with id ${uuid} was not found`
-                            }).takeover();
+                            if (!user) {
+                                reply({
+                                          error: true,
+                                          errMessage: `the user with id ${uuid} was not found`
+                                      }).takeover();
 
-                            return;
-                        }
+                                return;
+                            }
 
-                        if (user.uuid !== scope) {
-                            reply({
-                                error: true,
-                                errMessage: `the user with id ${uuid} is not in the current scope`
-                            }).takeover();
+                            if (user.uuid !== scope) {
+                                reply({
+                                          error: true,
+                                          errMessage: `the user with id ${uuid} is not in the current scope`
+                                      }).takeover();
 
-                            return;
-                        }
-                        return reply.continue();
-                    });
+                                return;
+                            }
+
+                            return reply.continue();
+                        });
                 }
             }]
         },
         handler: (request, reply) => {
-            const {uuid} = request.params;
-            const user = request.payload;
 
-            const updateOperation = Knex('users').where({
-                uuid: uuid
-            }).update({
-                name: user.name
-            }).then((res) => {
-                reply({
-                    message: 'successfully updated user'
+            const { uuid } = request.params;
+            const user = request.payload;
+            const updateOperation = Knex('users')
+                .where({ uuid: uuid })
+                .update({ name: user.name })
+                .then((res) => {
+
+                    reply({
+                              message: 'successfully updated user'
+                          });
+                }).catch((err) => {
+
+                    reply(`server-side error : ${err}`);
                 });
-            }).catch((err) => {
-                reply(`server-side error : ${err}`);
-            });
         }
     }];
+
 export default routes;
