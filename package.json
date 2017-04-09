@@ -1,5 +1,5 @@
 {
-  "name": "member",
+  "name": "hapi",
   "version": "0.0.1",
   "description": "Membership project by Hapi.js",
   "main": "index.js",
@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "dotenv": "^4.0.0",
+    "glue": "^4.1.0",
     "hapi": "^16.1.1",
     "hapi-auth-jwt": "^4.0.0",
     "jsonwebtoken": "^7.3.0",
